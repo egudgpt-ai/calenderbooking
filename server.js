@@ -13,8 +13,9 @@ app.use(express.static('public'));
 
 // Configuration file path
 const CONFIG_FILE = path.join(__dirname, 'config.json');
+const ADVISORS_FILE = path.join(__dirname, 'advisors.json');
 
-// Load or initialize configuration
+// Load or initialize main configuration (for webhook URL and Google credentials)
 function loadConfig() {
     try {
         if (fs.existsSync(CONFIG_FILE)) {
@@ -24,49 +25,67 @@ function loadConfig() {
         console.error('Error loading config:', error);
     }
     return {
-        calendars: [],
         webhookUrl: '',
-        meetingDuration: 30,
-        workingHours: { start: 9, end: 17 },
-        credentials: null,
-        tokens: null
+        credentials: null
     };
 }
 
-// Save configuration
+// Save main configuration
 function saveConfig(config) {
     fs.writeFileSync(CONFIG_FILE, JSON.stringify(config, null, 2));
 }
 
-let config = loadConfig();
+// Load advisors data
+function loadAdvisors() {
+    try {
+        if (fs.existsSync(ADVISORS_FILE)) {
+            return JSON.parse(fs.readFileSync(ADVISORS_FILE, 'utf8'));
+        }
+    } catch (error) {
+        console.error('Error loading advisors:', error);
+    }
+    return {};
+}
 
-// Google OAuth2 setup
-function getOAuth2Client() {
+// Save advisors data
+function saveAdvisors(advisors) {
+    fs.writeFileSync(ADVISORS_FILE, JSON.stringify(advisors, null, 2));
+}
+
+let config = loadConfig();
+let advisors = loadAdvisors();
+
+// Google OAuth2 setup for a specific advisor
+function getOAuth2Client(advisorId = null) {
     if (!config.credentials) {
         return null;
     }
     const oauth2Client = new google.auth.OAuth2(
         config.credentials.clientId,
         config.credentials.clientSecret,
-        config.credentials.redirectUri || 'http://localhost:3000/auth/callback'
+        config.credentials.redirectUri || `${getBaseUrl()}/auth/callback`
     );
-    if (config.tokens) {
-        oauth2Client.setCredentials(config.tokens);
+    
+    if (advisorId && advisors[advisorId] && advisors[advisorId].tokens) {
+        oauth2Client.setCredentials(advisors[advisorId].tokens);
     }
+    
     return oauth2Client;
 }
 
-// Routes
+// Get base URL
+function getBaseUrl() {
+    return process.env.RENDER_EXTERNAL_URL || process.env.BASE_URL || 'http://localhost:3000';
+}
 
-// Get configuration
+// ==================== ADMIN ROUTES ====================
+
+// Get main configuration
 app.get('/api/config', (req, res) => {
     res.json({
-        calendars: config.calendars,
         webhookUrl: config.webhookUrl,
-        meetingDuration: config.meetingDuration,
-        workingHours: config.workingHours,
-        isAuthenticated: !!config.tokens,
-        hasCredentials: !!config.credentials
+        hasCredentials: !!config.credentials,
+        baseUrl: getBaseUrl()
     });
 });
 
@@ -76,37 +95,142 @@ app.post('/api/credentials', (req, res) => {
     config.credentials = {
         clientId,
         clientSecret,
-        redirectUri: redirectUri || 'http://localhost:3000/auth/callback'
+        redirectUri: redirectUri || `${getBaseUrl()}/auth/callback`
     };
     saveConfig(config);
     res.json({ success: true });
 });
 
-// Save settings
-app.post('/api/settings', (req, res) => {
-    const { calendars, webhookUrl, meetingDuration, workingHours } = req.body;
-    if (calendars) config.calendars = calendars;
-    if (webhookUrl !== undefined) config.webhookUrl = webhookUrl;
-    if (meetingDuration) config.meetingDuration = meetingDuration;
-    if (workingHours) config.workingHours = workingHours;
+// Save webhook URL
+app.post('/api/webhook', (req, res) => {
+    const { webhookUrl } = req.body;
+    config.webhookUrl = webhookUrl;
     saveConfig(config);
     res.json({ success: true });
 });
 
-// Start OAuth flow
-app.get('/auth/start', (req, res) => {
+// Get all advisors
+app.get('/api/advisors', (req, res) => {
+    const advisorList = Object.entries(advisors).map(([id, data]) => ({
+        id,
+        name: data.name,
+        email: data.email,
+        isConnected: !!data.tokens,
+        meetingDuration: data.meetingDuration || 30,
+        workingHours: data.workingHours || { start: 9, end: 17 }
+    }));
+    res.json(advisorList);
+});
+
+// Create new advisor
+app.post('/api/advisors', (req, res) => {
+    const { name } = req.body;
+    if (!name) {
+        return res.status(400).json({ error: 'נא להזין שם' });
+    }
+    
+    // Create unique ID from name
+    const id = name.toLowerCase()
+        .replace(/[^a-zA-Z0-9\u0590-\u05FF]/g, '-')
+        .replace(/-+/g, '-')
+        .replace(/^-|-$/g, '') || 'advisor-' + Date.now();
+    
+    if (advisors[id]) {
+        return res.status(400).json({ error: 'יועץ עם שם זה כבר קיים' });
+    }
+    
+    advisors[id] = {
+        name,
+        email: null,
+        tokens: null,
+        calendars: [],
+        meetingDuration: 30,
+        workingHours: { start: 9, end: 17 }
+    };
+    
+    saveAdvisors(advisors);
+    
+    res.json({ 
+        success: true, 
+        id,
+        setupLink: `${getBaseUrl()}/setup/${id}`
+    });
+});
+
+// Delete advisor
+app.delete('/api/advisors/:id', (req, res) => {
+    const { id } = req.params;
+    if (advisors[id]) {
+        delete advisors[id];
+        saveAdvisors(advisors);
+        res.json({ success: true });
+    } else {
+        res.status(404).json({ error: 'יועץ לא נמצא' });
+    }
+});
+
+// ==================== ADVISOR SETUP ROUTES ====================
+
+// Get advisor info
+app.get('/api/advisor/:id', (req, res) => {
+    const { id } = req.params;
+    const advisor = advisors[id];
+    
+    if (!advisor) {
+        return res.status(404).json({ error: 'יועץ לא נמצא' });
+    }
+    
+    res.json({
+        id,
+        name: advisor.name,
+        email: advisor.email,
+        isConnected: !!advisor.tokens,
+        calendars: advisor.calendars || [],
+        meetingDuration: advisor.meetingDuration || 30,
+        workingHours: advisor.workingHours || { start: 9, end: 17 },
+        bookingLink: `${getBaseUrl()}/book/${id}`
+    });
+});
+
+// Update advisor settings
+app.post('/api/advisor/:id/settings', (req, res) => {
+    const { id } = req.params;
+    const { calendars, meetingDuration, workingHours } = req.body;
+    
+    if (!advisors[id]) {
+        return res.status(404).json({ error: 'יועץ לא נמצא' });
+    }
+    
+    if (calendars) advisors[id].calendars = calendars;
+    if (meetingDuration) advisors[id].meetingDuration = meetingDuration;
+    if (workingHours) advisors[id].workingHours = workingHours;
+    
+    saveAdvisors(advisors);
+    res.json({ success: true });
+});
+
+// Start OAuth flow for advisor
+app.get('/auth/start/:advisorId', (req, res) => {
+    const { advisorId } = req.params;
+    
+    if (!advisors[advisorId]) {
+        return res.status(404).send('יועץ לא נמצא');
+    }
+    
     const oauth2Client = getOAuth2Client();
     if (!oauth2Client) {
-        return res.status(400).json({ error: 'נא להגדיר תחילה את פרטי ה-Google OAuth' });
+        return res.status(400).send('נא להגדיר תחילה את פרטי ה-Google OAuth');
     }
 
     const authUrl = oauth2Client.generateAuthUrl({
         access_type: 'offline',
         scope: [
             'https://www.googleapis.com/auth/calendar.readonly',
-            'https://www.googleapis.com/auth/calendar.events'
+            'https://www.googleapis.com/auth/calendar.events',
+            'https://www.googleapis.com/auth/userinfo.email'
         ],
-        prompt: 'consent'
+        prompt: 'consent',
+        state: advisorId
     });
 
     res.redirect(authUrl);
@@ -114,26 +238,43 @@ app.get('/auth/start', (req, res) => {
 
 // OAuth callback
 app.get('/auth/callback', async (req, res) => {
-    const { code } = req.query;
+    const { code, state: advisorId } = req.query;
+    
+    if (!advisorId || !advisors[advisorId]) {
+        return res.redirect('/admin.html?auth=error&message=invalid_advisor');
+    }
+    
     const oauth2Client = getOAuth2Client();
 
     try {
         const { tokens } = await oauth2Client.getToken(code);
-        config.tokens = tokens;
-        saveConfig(config);
-        res.redirect('/admin.html?auth=success');
+        oauth2Client.setCredentials(tokens);
+        
+        // Get user email
+        const oauth2 = google.oauth2({ version: 'v2', auth: oauth2Client });
+        const userInfo = await oauth2.userinfo.get();
+        
+        advisors[advisorId].tokens = tokens;
+        advisors[advisorId].email = userInfo.data.email;
+        saveAdvisors(advisors);
+        
+        res.redirect(`/setup/${advisorId}?auth=success`);
     } catch (error) {
         console.error('Auth error:', error);
-        res.redirect('/admin.html?auth=error');
+        res.redirect(`/setup/${advisorId}?auth=error`);
     }
 });
 
-// Get list of calendars
-app.get('/api/calendars/list', async (req, res) => {
-    const oauth2Client = getOAuth2Client();
-    if (!oauth2Client || !config.tokens) {
+// Get calendars list for advisor
+app.get('/api/advisor/:id/calendars', async (req, res) => {
+    const { id } = req.params;
+    const advisor = advisors[id];
+    
+    if (!advisor || !advisor.tokens) {
         return res.status(401).json({ error: 'לא מחובר ל-Google' });
     }
+
+    const oauth2Client = getOAuth2Client(id);
 
     try {
         const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
@@ -145,16 +286,26 @@ app.get('/api/calendars/list', async (req, res) => {
     }
 });
 
-// Get available slots
-app.get('/api/availability', async (req, res) => {
-    const oauth2Client = getOAuth2Client();
-    if (!oauth2Client || !config.tokens) {
-        return res.status(401).json({ error: 'לא מחובר ל-Google' });
+// ==================== BOOKING ROUTES ====================
+
+// Get availability for booking
+app.get('/api/book/:advisorId/availability', async (req, res) => {
+    const { advisorId } = req.params;
+    const advisor = advisors[advisorId];
+    
+    if (!advisor) {
+        return res.status(404).json({ error: 'יועץ לא נמצא' });
+    }
+    
+    if (!advisor.tokens) {
+        return res.status(400).json({ error: 'היועץ עדיין לא הגדיר את היומן שלו' });
     }
 
-    if (config.calendars.length === 0) {
-        return res.status(400).json({ error: 'לא נבחרו יומנים לסנכרון' });
+    if (!advisor.calendars || advisor.calendars.length === 0) {
+        return res.status(400).json({ error: 'היועץ לא בחר יומנים לסנכרון' });
     }
+
+    const oauth2Client = getOAuth2Client(advisorId);
 
     try {
         const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
@@ -169,7 +320,7 @@ app.get('/api/availability', async (req, res) => {
             requestBody: {
                 timeMin: timeMin.toISOString(),
                 timeMax: timeMax.toISOString(),
-                items: config.calendars.map(cal => ({ id: cal.id }))
+                items: advisor.calendars.map(cal => ({ id: cal.id }))
             }
         });
 
@@ -185,11 +336,17 @@ app.get('/api/availability', async (req, res) => {
             timeMin,
             timeMax,
             allBusyTimes,
-            config.meetingDuration,
-            config.workingHours
+            advisor.meetingDuration || 30,
+            advisor.workingHours || { start: 9, end: 17 }
         );
 
-        res.json(availableSlots);
+        res.json({
+            advisor: {
+                name: advisor.name,
+                meetingDuration: advisor.meetingDuration || 30
+            },
+            slots: availableSlots
+        });
     } catch (error) {
         console.error('Error fetching availability:', error);
         res.status(500).json({ error: 'שגיאה בטעינת זמינות' });
@@ -209,8 +366,9 @@ function generateAvailableSlots(startDate, endDate, busyTimes, duration, working
     }
 
     while (current < endDate) {
-        // Skip weekends
-        if (current.getDay() !== 0 && current.getDay() !== 6) {
+        // Skip weekends (Friday and Saturday in Israel)
+        const day = current.getDay();
+        if (day !== 5 && day !== 6) { // Skip Friday (5) and Saturday (6)
             const dayStart = new Date(current);
             dayStart.setHours(workingHours.start, 0, 0, 0);
             const dayEnd = new Date(current);
@@ -259,12 +417,15 @@ function formatSlotDisplay(start, end) {
 }
 
 // Book a meeting
-app.post('/api/book', async (req, res) => {
-    const oauth2Client = getOAuth2Client();
-    if (!oauth2Client || !config.tokens) {
-        return res.status(401).json({ error: 'לא מחובר ל-Google' });
+app.post('/api/book/:advisorId', async (req, res) => {
+    const { advisorId } = req.params;
+    const advisor = advisors[advisorId];
+    
+    if (!advisor || !advisor.tokens) {
+        return res.status(404).json({ error: 'יועץ לא נמצא או לא מחובר' });
     }
 
+    const oauth2Client = getOAuth2Client(advisorId);
     const { slot, name, email, phone, notes } = req.body;
 
     if (!slot || !name || !email) {
@@ -294,7 +455,7 @@ app.post('/api/book', async (req, res) => {
             attendees: [{ email }]
         };
 
-        const targetCalendar = config.calendars[0]?.id || 'primary';
+        const targetCalendar = advisor.calendars[0]?.id || 'primary';
         const createdEvent = await calendar.events.insert({
             calendarId: targetCalendar,
             requestBody: event,
@@ -307,6 +468,11 @@ app.post('/api/book', async (req, res) => {
                 await axios.post(config.webhookUrl, {
                     event: 'booking_created',
                     data: {
+                        advisor: {
+                            id: advisorId,
+                            name: advisor.name,
+                            email: advisor.email
+                        },
                         eventId: createdEvent.data.id,
                         eventLink: createdEvent.data.htmlLink,
                         slot,
@@ -331,13 +497,26 @@ app.post('/api/book', async (req, res) => {
     }
 });
 
-// Serve frontend pages
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
+// ==================== PAGE ROUTES ====================
 
+// Serve admin page
 app.get('/admin', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'admin.html'));
+});
+
+// Serve advisor setup page
+app.get('/setup/:advisorId', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'setup.html'));
+});
+
+// Serve booking page
+app.get('/book/:advisorId', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'book.html'));
+});
+
+// Default route
+app.get('/', (req, res) => {
+    res.redirect('/admin.html');
 });
 
 const PORT = process.env.PORT || 3000;
@@ -345,14 +524,14 @@ app.listen(PORT, () => {
     console.log(`
 ╔════════════════════════════════════════════════════════════╗
 ║                                                            ║
-║   🗓️  Calendar Sync & Booking App                          ║
+║   🗓️  Calendar Sync & Booking App - Multi Advisor         ║
 ║                                                            ║
 ║   Server running at: http://localhost:${PORT}                ║
 ║                                                            ║
 ║   📌 Admin Panel: http://localhost:${PORT}/admin.html        ║
-║   📌 Booking Page: http://localhost:${PORT}                  ║
+║   📌 Advisor Setup: http://localhost:${PORT}/setup/:id       ║
+║   📌 Booking Page: http://localhost:${PORT}/book/:id         ║
 ║                                                            ║
 ╚════════════════════════════════════════════════════════════╝
     `);
 });
-

@@ -3,21 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ניהול יומנים - Admin</title>
+    <title>ניהול יועצים - Admin</title>
     <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #1a73e8;
-            --primary-dark: #1557b0;
-            --primary-light: #e8f0fe;
-            --accent: #00c853;
-            --warning: #f9ab00;
-            --danger: #ea4335;
-            --text: #202124;
-            --text-secondary: #5f6368;
-            --bg: #f0f2f5;
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --primary-light: #e0e7ff;
+            --accent: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --text: #1f2937;
+            --text-secondary: #6b7280;
+            --bg: #f3f4f6;
             --card-bg: #ffffff;
-            --border: #dadce0;
+            --border: #e5e7eb;
         }
 
         * {
@@ -33,12 +33,9 @@
         }
 
         .navbar {
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-            padding: 15px 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
+            padding: 20px 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
         }
 
         .navbar h1 {
@@ -47,23 +44,6 @@
             display: flex;
             align-items: center;
             gap: 10px;
-        }
-
-        .navbar-links {
-            display: flex;
-            gap: 15px;
-        }
-
-        .navbar-links a {
-            color: white;
-            text-decoration: none;
-            padding: 8px 16px;
-            border-radius: 8px;
-            transition: background 0.3s;
-        }
-
-        .navbar-links a:hover {
-            background: rgba(255,255,255,0.1);
         }
 
         .container {
@@ -75,7 +55,7 @@
         .card {
             background: var(--card-bg);
             border-radius: 16px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
             margin-bottom: 25px;
             overflow: hidden;
         }
@@ -100,23 +80,6 @@
             padding: 25px;
         }
 
-        .status-badge {
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: 500;
-        }
-
-        .status-connected {
-            background: #e6f4ea;
-            color: #1e8e3e;
-        }
-
-        .status-disconnected {
-            background: #fce8e6;
-            color: #c5221f;
-        }
-
         .form-group {
             margin-bottom: 20px;
         }
@@ -128,9 +91,7 @@
             color: var(--text);
         }
 
-        .form-group input,
-        .form-group textarea,
-        .form-group select {
+        .form-group input {
             width: 100%;
             padding: 12px 16px;
             border: 2px solid var(--border);
@@ -140,9 +101,7 @@
             transition: all 0.3s ease;
         }
 
-        .form-group input:focus,
-        .form-group textarea:focus,
-        .form-group select:focus {
+        .form-group input:focus {
             outline: none;
             border-color: var(--primary);
             box-shadow: 0 0 0 4px var(--primary-light);
@@ -150,8 +109,9 @@
 
         .form-row {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
+            grid-template-columns: 1fr auto;
+            gap: 15px;
+            align-items: end;
         }
 
         .btn {
@@ -178,72 +138,134 @@
             transform: translateY(-2px);
         }
 
-        .btn-danger {
-            background: var(--danger);
-            color: white;
-        }
-
-        .btn-danger:hover {
-            background: #b31412;
-        }
-
-        .btn-secondary {
-            background: var(--bg);
-            color: var(--text);
-            border: 2px solid var(--border);
-        }
-
-        .btn-secondary:hover {
-            background: var(--border);
-        }
-
         .btn-success {
             background: var(--accent);
             color: white;
         }
 
-        .calendar-list {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+            padding: 8px 12px;
+            font-size: 0.9rem;
         }
 
-        .calendar-item {
+        .btn-sm {
+            padding: 8px 16px;
+            font-size: 0.9rem;
+        }
+
+        .advisor-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .advisor-item {
             display: flex;
             align-items: center;
-            padding: 15px;
+            padding: 20px;
             border: 2px solid var(--border);
-            border-radius: 10px;
+            border-radius: 12px;
             transition: all 0.3s;
         }
 
-        .calendar-item:hover {
+        .advisor-item:hover {
             border-color: var(--primary-light);
-            background: var(--primary-light);
+            background: #fafafa;
         }
 
-        .calendar-item input[type="checkbox"] {
-            width: 20px;
-            height: 20px;
+        .advisor-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            font-weight: 600;
             margin-left: 15px;
-            cursor: pointer;
         }
 
-        .calendar-item .calendar-color {
-            width: 16px;
-            height: 16px;
-            border-radius: 4px;
-            margin-left: 12px;
-        }
-
-        .calendar-item .calendar-name {
-            font-weight: 500;
+        .advisor-info {
             flex: 1;
         }
 
-        .calendar-item .calendar-email {
+        .advisor-name {
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: var(--text);
+        }
+
+        .advisor-email {
             color: var(--text-secondary);
             font-size: 0.9rem;
+        }
+
+        .advisor-status {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            margin-left: 15px;
+        }
+
+        .status-connected {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .status-pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .advisor-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .link-box {
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 10px 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .link-box input {
+            flex: 1;
+            border: none;
+            background: transparent;
+            font-family: monospace;
+            font-size: 0.85rem;
+            color: var(--text);
+        }
+
+        .link-box button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-secondary);
+        }
+
+        .empty-state-icon {
+            font-size: 50px;
+            margin-bottom: 15px;
         }
 
         .alert {
@@ -256,25 +278,13 @@
         }
 
         .alert-success {
-            background: #e6f4ea;
-            color: #1e8e3e;
-            border: 1px solid #ceead6;
-        }
-
-        .alert-warning {
-            background: #fef7e0;
-            color: #b06000;
-            border: 1px solid #feefc3;
+            background: #d1fae5;
+            color: #065f46;
         }
 
         .alert-error {
-            background: #fce8e6;
-            color: #c5221f;
-            border: 1px solid #f5c6cb;
-        }
-
-        .hidden {
-            display: none !important;
+            background: #fee2e2;
+            color: #991b1b;
         }
 
         .help-text {
@@ -283,75 +293,21 @@
             margin-top: 6px;
         }
 
-        .section-title {
-            font-size: 0.9rem;
-            text-transform: uppercase;
-            color: var(--text-secondary);
-            margin-bottom: 15px;
-            letter-spacing: 1px;
-        }
-
         .divider {
             height: 1px;
             background: var(--border);
             margin: 25px 0;
         }
 
-        .copy-btn {
-            background: var(--bg);
-            border: 1px solid var(--border);
-            padding: 8px 12px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 0.85rem;
-            margin-right: 10px;
-        }
-
-        .copy-btn:hover {
-            background: var(--border);
-        }
-
         .code-block {
-            background: #1a1a2e;
+            background: #1e1b4b;
             color: #e8e8e8;
             padding: 15px 20px;
             border-radius: 10px;
             font-family: 'Courier New', monospace;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             overflow-x: auto;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .loading-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.5);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
-
-        .loading-overlay.hidden {
-            display: none;
-        }
-
-        .spinner {
-            width: 50px;
-            height: 50px;
-            border: 4px solid rgba(255,255,255,0.3);
-            border-top-color: white;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
+            white-space: pre-wrap;
         }
 
         @media (max-width: 600px) {
@@ -359,42 +315,34 @@
                 grid-template-columns: 1fr;
             }
 
-            .navbar {
-                flex-direction: column;
-                gap: 15px;
+            .advisor-item {
+                flex-wrap: wrap;
             }
 
-            .code-block {
-                flex-direction: column;
-                gap: 10px;
+            .advisor-actions {
+                width: 100%;
+                margin-top: 15px;
+                justify-content: flex-end;
             }
         }
     </style>
 </head>
 <body>
     <nav class="navbar">
-        <h1>⚙️ ניהול מערכת יומנים</h1>
-        <div class="navbar-links">
-            <a href="/">📅 דף הזמנה</a>
-            <a href="/admin.html">⚙️ הגדרות</a>
-        </div>
+        <h1>👥 ניהול יועצים</h1>
     </nav>
 
     <div class="container">
-        <!-- Alert Messages -->
         <div id="alertContainer"></div>
 
         <!-- Google OAuth Credentials -->
         <div class="card">
             <div class="card-header">
-                <h2>🔑 פרטי התחברות Google</h2>
-                <span class="status-badge" id="credentialsStatus">לא מוגדר</span>
+                <h2>🔑 הגדרות Google OAuth</h2>
             </div>
             <div class="card-body">
                 <p class="help-text" style="margin-bottom: 20px;">
-                    כדי להתחבר ל-Google Calendar, יש להגדיר פרויקט ב-
-                    <a href="https://console.cloud.google.com/" target="_blank">Google Cloud Console</a>
-                    ולהפעיל את Google Calendar API.
+                    הגדרות אלו משותפות לכל היועצים. הגדירי פעם אחת ב-<a href="https://console.cloud.google.com/" target="_blank">Google Cloud Console</a>.
                 </p>
 
                 <div class="form-group">
@@ -409,251 +357,188 @@
 
                 <div class="form-group">
                     <label>Redirect URI</label>
-                    <input type="text" id="redirectUri" value="http://localhost:3000/auth/callback">
+                    <input type="text" id="redirectUri" placeholder="https://your-app.onrender.com/auth/callback">
                     <p class="help-text">יש להוסיף כתובת זו גם ב-Google Cloud Console</p>
                 </div>
 
-                <button class="btn btn-primary" id="saveCredentialsBtn">💾 שמור פרטים</button>
+                <button class="btn btn-primary" id="saveCredentialsBtn">💾 שמור הגדרות</button>
             </div>
         </div>
 
-        <!-- Google Auth -->
+        <!-- Webhook Settings -->
         <div class="card">
             <div class="card-header">
-                <h2>🔗 התחברות ל-Google</h2>
-                <span class="status-badge" id="authStatus">לא מחובר</span>
+                <h2>🔗 הגדרות Webhook</h2>
             </div>
             <div class="card-body">
-                <div id="authNotConnected">
-                    <p style="margin-bottom: 20px;">יש להתחבר לחשבון Google כדי לקבל גישה ליומנים.</p>
-                    <button class="btn btn-primary" id="connectGoogleBtn">🔗 התחבר ל-Google</button>
-                </div>
-                <div id="authConnected" class="hidden">
-                    <div class="alert alert-success">
-                        <span>✅</span>
-                        <span>מחובר בהצלחה ל-Google Calendar!</span>
-                    </div>
-                    <button class="btn btn-secondary" id="refreshCalendarsBtn">🔄 רענן רשימת יומנים</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Calendar Selection -->
-        <div class="card">
-            <div class="card-header">
-                <h2>📅 בחירת יומנים לסנכרון</h2>
-            </div>
-            <div class="card-body">
-                <p class="help-text" style="margin-bottom: 20px;">
-                    בחרו את היומנים שברצונכם לסנכרן. המערכת תבדוק זמנים פנויים בכל היומנים שנבחרו.
-                </p>
-
-                <div id="calendarsList">
-                    <p style="color: var(--text-secondary);">יש להתחבר ל-Google כדי לראות את היומנים</p>
-                </div>
-
-                <div class="divider"></div>
-
-                <button class="btn btn-success" id="saveCalendarsBtn">💾 שמור בחירה</button>
-            </div>
-        </div>
-
-        <!-- Settings -->
-        <div class="card">
-            <div class="card-header">
-                <h2>⚙️ הגדרות כלליות</h2>
-            </div>
-            <div class="card-body">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>משך פגישה (דקות)</label>
-                        <select id="meetingDuration">
-                            <option value="15">15 דקות</option>
-                            <option value="30" selected>30 דקות</option>
-                            <option value="45">45 דקות</option>
-                            <option value="60">60 דקות</option>
-                            <option value="90">90 דקות</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>שעת התחלה (שעות עבודה)</label>
-                        <select id="workStart">
-                            <option value="7">07:00</option>
-                            <option value="8">08:00</option>
-                            <option value="9" selected>09:00</option>
-                            <option value="10">10:00</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>שעת סיום (שעות עבודה)</label>
-                        <select id="workEnd">
-                            <option value="16">16:00</option>
-                            <option value="17" selected>17:00</option>
-                            <option value="18">18:00</option>
-                            <option value="19">19:00</option>
-                            <option value="20">20:00</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="divider"></div>
-
-                <div class="section-title">🔗 Webhook</div>
                 <div class="form-group">
                     <label>כתובת Webhook</label>
                     <input type="url" id="webhookUrl" placeholder="https://your-webhook.com/booking">
-                    <p class="help-text">כתובת שאליה יישלחו פרטי הפגישות שנקבעות</p>
+                    <p class="help-text">כתובת שאליה יישלחו פרטי כל הפגישות מכל היועצים</p>
                 </div>
+
+                <button class="btn btn-primary" id="saveWebhookBtn">💾 שמור Webhook</button>
 
                 <div class="divider"></div>
 
-                <button class="btn btn-primary" id="saveSettingsBtn">💾 שמור הגדרות</button>
+                <p class="help-text" style="margin-bottom: 10px;">פורמט ה-Webhook:</p>
+                <div class="code-block">{
+  "event": "booking_created",
+  "data": {
+    "advisor": { "id": "...", "name": "...", "email": "..." },
+    "slot": { "start": "...", "end": "..." },
+    "attendee": { "name": "...", "email": "...", "phone": "..." },
+    "createdAt": "..."
+  }
+}</div>
             </div>
         </div>
 
-        <!-- Webhook Format -->
+        <!-- Advisors Management -->
         <div class="card">
             <div class="card-header">
-                <h2>📤 פורמט ה-Webhook</h2>
+                <h2>👥 יועצים</h2>
             </div>
             <div class="card-body">
-                <p class="help-text" style="margin-bottom: 15px;">
-                    כאשר נקבעת פגישה, נשלחת בקשת POST עם הפרטים הבאים:
-                </p>
-                <div class="code-block">
-                    <pre style="margin: 0; white-space: pre-wrap;">{
-  "event": "booking_created",
-  "data": {
-    "eventId": "google-event-id",
-    "eventLink": "https://calendar.google.com/...",
-    "slot": {
-      "start": "2024-01-15T10:00:00.000Z",
-      "end": "2024-01-15T10:30:00.000Z"
-    },
-    "attendee": {
-      "name": "שם הלקוח",
-      "email": "email@example.com",
-      "phone": "050-0000000",
-      "notes": "הערות נוספות"
-    },
-    "createdAt": "2024-01-14T12:00:00.000Z"
-  }
-}</pre>
+                <div class="form-row" style="margin-bottom: 25px;">
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label>הוסף יועץ חדש</label>
+                        <input type="text" id="newAdvisorName" placeholder="שם היועץ">
+                    </div>
+                    <button class="btn btn-success" id="addAdvisorBtn">➕ הוסף</button>
+                </div>
+
+                <div id="advisorsList">
+                    <div class="empty-state">
+                        <div class="empty-state-icon">👥</div>
+                        <h3>אין יועצים עדיין</h3>
+                        <p>הוסיפי יועץ חדש כדי להתחיל</p>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-
-    <div class="loading-overlay hidden" id="loadingOverlay">
-        <div class="spinner"></div>
     </div>
 
     <script>
         let config = {};
-        let allCalendars = [];
 
-        // Load initial config
+        // Load config
         async function loadConfig() {
             try {
                 const response = await fetch('/api/config');
                 config = await response.json();
-                updateUI();
+                
+                document.getElementById('webhookUrl').value = config.webhookUrl || '';
+                
+                if (config.baseUrl) {
+                    document.getElementById('redirectUri').placeholder = `${config.baseUrl}/auth/callback`;
+                }
+                
+                loadAdvisors();
             } catch (error) {
                 showAlert('שגיאה בטעינת ההגדרות', 'error');
             }
         }
 
-        // Update UI based on config
-        function updateUI() {
-            // Credentials status
-            const credStatus = document.getElementById('credentialsStatus');
-            if (config.hasCredentials) {
-                credStatus.textContent = 'מוגדר ✓';
-                credStatus.className = 'status-badge status-connected';
-            } else {
-                credStatus.textContent = 'לא מוגדר';
-                credStatus.className = 'status-badge status-disconnected';
-            }
-
-            // Auth status
-            const authStatus = document.getElementById('authStatus');
-            if (config.isAuthenticated) {
-                authStatus.textContent = 'מחובר ✓';
-                authStatus.className = 'status-badge status-connected';
-                document.getElementById('authNotConnected').classList.add('hidden');
-                document.getElementById('authConnected').classList.remove('hidden');
-                loadCalendars();
-            } else {
-                authStatus.textContent = 'לא מחובר';
-                authStatus.className = 'status-badge status-disconnected';
-                document.getElementById('authNotConnected').classList.remove('hidden');
-                document.getElementById('authConnected').classList.add('hidden');
-            }
-
-            // Settings
-            document.getElementById('meetingDuration').value = config.meetingDuration || 30;
-            document.getElementById('workStart').value = config.workingHours?.start || 9;
-            document.getElementById('workEnd').value = config.workingHours?.end || 17;
-            document.getElementById('webhookUrl').value = config.webhookUrl || '';
-        }
-
-        // Load calendars list
-        async function loadCalendars() {
+        // Load advisors
+        async function loadAdvisors() {
             try {
-                const response = await fetch('/api/calendars/list');
-                if (!response.ok) throw new Error('Failed to load calendars');
-                allCalendars = await response.json();
-                renderCalendars();
+                const response = await fetch('/api/advisors');
+                const advisors = await response.json();
+                renderAdvisors(advisors);
             } catch (error) {
-                document.getElementById('calendarsList').innerHTML = 
-                    '<p style="color: var(--danger);">שגיאה בטעינת יומנים</p>';
+                console.error('Error loading advisors:', error);
             }
         }
 
-        // Render calendars list
-        function renderCalendars() {
-            const container = document.getElementById('calendarsList');
-            const selectedIds = config.calendars?.map(c => c.id) || [];
+        // Render advisors list
+        function renderAdvisors(advisors) {
+            const container = document.getElementById('advisorsList');
 
-            if (allCalendars.length === 0) {
-                container.innerHTML = '<p>לא נמצאו יומנים</p>';
+            if (advisors.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">👥</div>
+                        <h3>אין יועצים עדיין</h3>
+                        <p>הוסיפי יועץ חדש כדי להתחיל</p>
+                    </div>
+                `;
                 return;
             }
 
-            container.innerHTML = '<div class="calendar-list">' + 
-                allCalendars.map(cal => `
-                    <label class="calendar-item">
-                        <input type="checkbox" value="${cal.id}" 
-                            ${selectedIds.includes(cal.id) ? 'checked' : ''}>
-                        <span class="calendar-color" style="background: ${cal.backgroundColor || '#1a73e8'}"></span>
-                        <div>
-                            <div class="calendar-name">${cal.summary}</div>
-                            <div class="calendar-email">${cal.id}</div>
+            container.innerHTML = '<div class="advisor-list">' + 
+                advisors.map(advisor => `
+                    <div class="advisor-item">
+                        <div class="advisor-avatar">${advisor.name.charAt(0)}</div>
+                        <div class="advisor-info">
+                            <div class="advisor-name">${advisor.name}</div>
+                            <div class="advisor-email">${advisor.email || 'לא מחובר עדיין'}</div>
+                            <div class="link-box">
+                                <input type="text" value="${config.baseUrl}/setup/${advisor.id}" readonly>
+                                <button onclick="copyLink('${config.baseUrl}/setup/${advisor.id}')">העתק</button>
+                            </div>
                         </div>
-                    </label>
+                        <span class="advisor-status ${advisor.isConnected ? 'status-connected' : 'status-pending'}">
+                            ${advisor.isConnected ? '✅ מחובר' : '⏳ ממתין'}
+                        </span>
+                        <div class="advisor-actions">
+                            ${advisor.isConnected ? `
+                                <button class="btn btn-sm btn-primary" onclick="copyLink('${config.baseUrl}/book/${advisor.id}')">📋 קישור הזמנה</button>
+                            ` : ''}
+                            <button class="btn btn-danger" onclick="deleteAdvisor('${advisor.id}')">🗑️</button>
+                        </div>
+                    </div>
                 `).join('') +
             '</div>';
         }
 
-        // Show alert
-        function showAlert(message, type = 'success') {
-            const container = document.getElementById('alertContainer');
-            const icon = type === 'success' ? '✅' : type === 'error' ? '❌' : '⚠️';
-            container.innerHTML = `
-                <div class="alert alert-${type}">
-                    <span>${icon}</span>
-                    <span>${message}</span>
-                </div>
-            `;
-            setTimeout(() => container.innerHTML = '', 5000);
+        // Copy link to clipboard
+        function copyLink(link) {
+            navigator.clipboard.writeText(link);
+            showAlert('הקישור הועתק!', 'success');
         }
 
-        // Show/hide loading
-        function setLoading(show) {
-            document.getElementById('loadingOverlay').classList.toggle('hidden', !show);
+        // Add advisor
+        document.getElementById('addAdvisorBtn').addEventListener('click', async () => {
+            const name = document.getElementById('newAdvisorName').value.trim();
+            if (!name) {
+                showAlert('נא להזין שם יועץ', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/advisors', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name })
+                });
+
+                const result = await response.json();
+                if (response.ok) {
+                    showAlert(`יועץ "${name}" נוסף בהצלחה! שלחי לו את הקישור להגדרה.`, 'success');
+                    document.getElementById('newAdvisorName').value = '';
+                    loadAdvisors();
+                } else {
+                    showAlert(result.error, 'error');
+                }
+            } catch (error) {
+                showAlert('שגיאה בהוספת יועץ', 'error');
+            }
+        });
+
+        // Delete advisor
+        async function deleteAdvisor(id) {
+            if (!confirm('למחוק את היועץ?')) return;
+
+            try {
+                const response = await fetch(`/api/advisors/${id}`, { method: 'DELETE' });
+                if (response.ok) {
+                    showAlert('היועץ נמחק', 'success');
+                    loadAdvisors();
+                }
+            } catch (error) {
+                showAlert('שגיאה במחיקת יועץ', 'error');
+            }
         }
 
         // Save credentials
@@ -663,11 +548,10 @@
             const redirectUri = document.getElementById('redirectUri').value.trim();
 
             if (!clientId || !clientSecret) {
-                showAlert('נא למלא את כל השדות', 'error');
+                showAlert('נא למלא Client ID ו-Client Secret', 'error');
                 return;
             }
 
-            setLoading(true);
             try {
                 const response = await fetch('/api/credentials', {
                     method: 'POST',
@@ -676,95 +560,43 @@
                 });
 
                 if (response.ok) {
-                    showAlert('פרטי ההתחברות נשמרו בהצלחה');
-                    loadConfig();
-                } else {
-                    throw new Error('Failed to save');
-                }
-            } catch (error) {
-                showAlert('שגיאה בשמירת הפרטים', 'error');
-            }
-            setLoading(false);
-        });
-
-        // Connect to Google
-        document.getElementById('connectGoogleBtn').addEventListener('click', () => {
-            window.location.href = '/auth/start';
-        });
-
-        // Refresh calendars
-        document.getElementById('refreshCalendarsBtn').addEventListener('click', () => {
-            loadCalendars();
-            showAlert('רשימת היומנים רועננה');
-        });
-
-        // Save calendars selection
-        document.getElementById('saveCalendarsBtn').addEventListener('click', async () => {
-            const checkboxes = document.querySelectorAll('#calendarsList input[type="checkbox"]:checked');
-            const selectedCalendars = Array.from(checkboxes).map(cb => {
-                const cal = allCalendars.find(c => c.id === cb.value);
-                return { id: cal.id, name: cal.summary };
-            });
-
-            setLoading(true);
-            try {
-                const response = await fetch('/api/settings', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ calendars: selectedCalendars })
-                });
-
-                if (response.ok) {
-                    showAlert(`נבחרו ${selectedCalendars.length} יומנים לסנכרון`);
-                    loadConfig();
-                } else {
-                    throw new Error('Failed to save');
-                }
-            } catch (error) {
-                showAlert('שגיאה בשמירת הבחירה', 'error');
-            }
-            setLoading(false);
-        });
-
-        // Save settings
-        document.getElementById('saveSettingsBtn').addEventListener('click', async () => {
-            const meetingDuration = parseInt(document.getElementById('meetingDuration').value);
-            const workStart = parseInt(document.getElementById('workStart').value);
-            const workEnd = parseInt(document.getElementById('workEnd').value);
-            const webhookUrl = document.getElementById('webhookUrl').value.trim();
-
-            setLoading(true);
-            try {
-                const response = await fetch('/api/settings', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        meetingDuration,
-                        workingHours: { start: workStart, end: workEnd },
-                        webhookUrl
-                    })
-                });
-
-                if (response.ok) {
-                    showAlert('ההגדרות נשמרו בהצלחה');
-                    loadConfig();
-                } else {
-                    throw new Error('Failed to save');
+                    showAlert('הגדרות Google נשמרו בהצלחה', 'success');
                 }
             } catch (error) {
                 showAlert('שגיאה בשמירת ההגדרות', 'error');
             }
-            setLoading(false);
         });
 
-        // Check for auth callback result
-        const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.get('auth') === 'success') {
-            showAlert('התחברות ל-Google הצליחה!');
-            window.history.replaceState({}, document.title, '/admin.html');
-        } else if (urlParams.get('auth') === 'error') {
-            showAlert('שגיאה בהתחברות ל-Google', 'error');
-            window.history.replaceState({}, document.title, '/admin.html');
+        // Save webhook
+        document.getElementById('saveWebhookBtn').addEventListener('click', async () => {
+            const webhookUrl = document.getElementById('webhookUrl').value.trim();
+
+            try {
+                const response = await fetch('/api/webhook', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ webhookUrl })
+                });
+
+                if (response.ok) {
+                    showAlert('Webhook נשמר בהצלחה', 'success');
+                }
+            } catch (error) {
+                showAlert('שגיאה בשמירת Webhook', 'error');
+            }
+        });
+
+        // Show alert
+        function showAlert(message, type) {
+            const container = document.getElementById('alertContainer');
+            const icon = type === 'success' ? '✅' : '❌';
+            container.innerHTML = `
+                <div class="alert alert-${type}">
+                    <span>${icon}</span>
+                    <span>${message}</span>
+                </div>
+            `;
+            setTimeout(() => container.innerHTML = '', 5000);
         }
 
         // Initialize
@@ -772,4 +604,3 @@
     </script>
 </body>
 </html>
-

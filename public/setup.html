@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>הגדרת יומן - יועץ</title>
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --primary-light: #e0e7ff;
+            --accent: #10b981;
+            --text: #1f2937;
+            --text-secondary: #6b7280;
+            --bg: #f3f4f6;
+            --card-bg: #ffffff;
+            --border: #e5e7eb;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Heebo', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            padding: 40px 20px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+            overflow: hidden;
+            margin-bottom: 25px;
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, var(--primary) 0%, #8b5cf6 100%);
+            color: white;
+            padding: 25px;
+        }
+
+        .card-header h2 {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.3rem;
+        }
+
+        .card-body { padding: 30px; }
+
+        .step-indicator {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .step-dot {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: var(--text-secondary);
+            position: relative;
+        }
+
+        .step-dot.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .step-dot.completed {
+            background: var(--accent);
+            color: white;
+        }
+
+        .step-dot:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            left: -30px;
+            top: 50%;
+            width: 20px;
+            height: 3px;
+            background: var(--border);
+        }
+
+        .step-dot.completed:not(:last-child)::after {
+            background: var(--accent);
+        }
+
+        .btn {
+            padding: 14px 28px;
+            border: none;
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, #8b5cf6 100%);
+            color: white;
+            width: 100%;
+            justify-content: center;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn-success {
+            background: var(--accent);
+            color: white;
+        }
+
+        .status-box {
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .status-connected {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .status-pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-icon { font-size: 2rem; }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: var(--text);
+        }
+
+        .form-group select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            font-family: inherit;
+            font-size: 1rem;
+        }
+
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .calendar-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: 250px;
+            overflow-y: auto;
+        }
+
+        .calendar-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .calendar-item:hover {
+            border-color: var(--primary-light);
+            background: #fafafa;
+        }
+
+        .calendar-item.selected {
+            border-color: var(--primary);
+            background: var(--primary-light);
+        }
+
+        .calendar-item input {
+            margin-left: 12px;
+        }
+
+        .calendar-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 4px;
+            margin-left: 12px;
+        }
+
+        .link-box {
+            background: #f8fafc;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .link-box input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-family: monospace;
+            margin: 15px 0;
+            text-align: center;
+        }
+
+        .success-message {
+            text-align: center;
+            padding: 30px;
+        }
+
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            background: var(--accent);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 40px;
+            color: white;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .alert-success { background: #d1fae5; color: #065f46; }
+        .alert-error { background: #fee2e2; color: #991b1b; }
+
+        .divider {
+            height: 1px;
+            background: var(--border);
+            margin: 25px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🗓️ הגדרת היומן שלך</h1>
+            <p>חברי את היומן שלך כדי לקבל הזמנות</p>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h2>
+                    <span>👋</span>
+                    <span>שלום, <span id="advisorName">יועץ</span></span>
+                </h2>
+            </div>
+
+            <div class="card-body">
+                <div class="step-indicator">
+                    <div class="step-dot" id="step1dot">1</div>
+                    <div class="step-dot" id="step2dot">2</div>
+                    <div class="step-dot" id="step3dot">✓</div>
+                </div>
+
+                <div id="alertContainer"></div>
+
+                <!-- Step 1: Connect Google -->
+                <div id="step1">
+                    <div class="status-box status-pending" id="connectionStatus">
+                        <div class="status-icon">🔗</div>
+                        <div>
+                            <strong>חיבור ל-Google Calendar</strong>
+                            <p>יש להתחבר כדי לאפשר ללקוחות לראות את הזמינות שלך</p>
+                        </div>
+                    </div>
+
+                    <button class="btn btn-primary" id="connectBtn">
+                        <span>🔗</span>
+                        <span>התחבר ל-Google</span>
+                    </button>
+                </div>
+
+                <!-- Step 2: Settings -->
+                <div id="step2" style="display: none;">
+                    <div class="status-box status-connected">
+                        <div class="status-icon">✅</div>
+                        <div>
+                            <strong>מחובר בהצלחה!</strong>
+                            <p id="connectedEmail"></p>
+                        </div>
+                    </div>
+
+                    <div class="divider"></div>
+
+                    <h3 style="margin-bottom: 15px;">📅 בחר יומנים לסנכרון:</h3>
+                    <div class="calendar-list" id="calendarsList">
+                        <p>טוען יומנים...</p>
+                    </div>
+
+                    <div class="divider"></div>
+
+                    <h3 style="margin-bottom: 15px;">⚙️ הגדרות פגישות:</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>משך פגישה</label>
+                            <select id="meetingDuration">
+                                <option value="15">15 דקות</option>
+                                <option value="30" selected>30 דקות</option>
+                                <option value="45">45 דקות</option>
+                                <option value="60">60 דקות</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>שעות עבודה</label>
+                            <select id="workingHours">
+                                <option value="8-17">08:00 - 17:00</option>
+                                <option value="9-17" selected>09:00 - 17:00</option>
+                                <option value="9-18">09:00 - 18:00</option>
+                                <option value="10-19">10:00 - 19:00</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <button class="btn btn-primary" id="saveSettingsBtn">
+                        <span>💾</span>
+                        <span>שמור והמשך</span>
+                    </button>
+                </div>
+
+                <!-- Step 3: Done -->
+                <div id="step3" style="display: none;">
+                    <div class="success-message">
+                        <div class="success-icon">🎉</div>
+                        <h2>הכל מוכן!</h2>
+                        <p style="margin: 15px 0; color: var(--text-secondary);">
+                            הלקוחות יכולים עכשיו לקבוע איתך פגישות
+                        </p>
+                    </div>
+
+                    <div class="link-box">
+                        <strong>🔗 הקישור להזמנות שלך:</strong>
+                        <input type="text" id="bookingLink" readonly>
+                        <button class="btn btn-success" id="copyLinkBtn">📋 העתק קישור</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const advisorId = window.location.pathname.split('/').pop();
+        let advisor = null;
+        let allCalendars = [];
+
+        // Load advisor data
+        async function loadAdvisor() {
+            try {
+                const response = await fetch(`/api/advisor/${advisorId}`);
+                if (!response.ok) {
+                    document.body.innerHTML = '<div style="text-align:center;padding:50px;color:white;"><h1>יועץ לא נמצא</h1></div>';
+                    return;
+                }
+                advisor = await response.json();
+                
+                document.getElementById('advisorName').textContent = advisor.name;
+                
+                if (advisor.isConnected) {
+                    showStep(2);
+                    document.getElementById('connectedEmail').textContent = advisor.email;
+                    loadCalendars();
+                    
+                    if (advisor.calendars && advisor.calendars.length > 0) {
+                        showStep(3);
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading advisor:', error);
+            }
+        }
+
+        // Show step
+        function showStep(step) {
+            document.getElementById('step1').style.display = step === 1 ? 'block' : 'none';
+            document.getElementById('step2').style.display = step === 2 ? 'block' : 'none';
+            document.getElementById('step3').style.display = step === 3 ? 'block' : 'none';
+
+            document.getElementById('step1dot').className = 'step-dot ' + (step > 1 ? 'completed' : 'active');
+            document.getElementById('step2dot').className = 'step-dot ' + (step > 2 ? 'completed' : step === 2 ? 'active' : '');
+            document.getElementById('step3dot').className = 'step-dot ' + (step === 3 ? 'completed' : '');
+
+            if (step === 3) {
+                document.getElementById('bookingLink').value = advisor.bookingLink;
+            }
+        }
+
+        // Load calendars
+        async function loadCalendars() {
+            try {
+                const response = await fetch(`/api/advisor/${advisorId}/calendars`);
+                allCalendars = await response.json();
+                renderCalendars();
+            } catch (error) {
+                console.error('Error loading calendars:', error);
+            }
+        }
+
+        // Render calendars
+        function renderCalendars() {
+            const container = document.getElementById('calendarsList');
+            const selectedIds = advisor.calendars?.map(c => c.id) || [];
+
+            container.innerHTML = allCalendars.map(cal => `
+                <label class="calendar-item ${selectedIds.includes(cal.id) ? 'selected' : ''}">
+                    <input type="checkbox" value="${cal.id}" ${selectedIds.includes(cal.id) ? 'checked' : ''}>
+                    <span class="calendar-color" style="background: ${cal.backgroundColor || '#6366f1'}"></span>
+                    <span>${cal.summary}</span>
+                </label>
+            `).join('');
+
+            // Add click handlers
+            container.querySelectorAll('.calendar-item').forEach(item => {
+                item.addEventListener('click', (e) => {
+                    if (e.target.tagName !== 'INPUT') {
+                        const checkbox = item.querySelector('input');
+                        checkbox.checked = !checkbox.checked;
+                    }
+                    item.classList.toggle('selected', item.querySelector('input').checked);
+                });
+            });
+        }
+
+        // Connect to Google
+        document.getElementById('connectBtn').addEventListener('click', () => {
+            window.location.href = `/auth/start/${advisorId}`;
+        });
+
+        // Save settings
+        document.getElementById('saveSettingsBtn').addEventListener('click', async () => {
+            const checkboxes = document.querySelectorAll('#calendarsList input:checked');
+            const calendars = Array.from(checkboxes).map(cb => {
+                const cal = allCalendars.find(c => c.id === cb.value);
+                return { id: cal.id, name: cal.summary };
+            });
+
+            if (calendars.length === 0) {
+                showAlert('נא לבחור לפחות יומן אחד', 'error');
+                return;
+            }
+
+            const duration = parseInt(document.getElementById('meetingDuration').value);
+            const hours = document.getElementById('workingHours').value.split('-');
+            const workingHours = { start: parseInt(hours[0]), end: parseInt(hours[1]) };
+
+            try {
+                const response = await fetch(`/api/advisor/${advisorId}/settings`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ calendars, meetingDuration: duration, workingHours })
+                });
+
+                if (response.ok) {
+                    advisor.calendars = calendars;
+                    advisor.bookingLink = `${window.location.origin}/book/${advisorId}`;
+                    showStep(3);
+                }
+            } catch (error) {
+                showAlert('שגיאה בשמירת ההגדרות', 'error');
+            }
+        });
+
+        // Copy link
+        document.getElementById('copyLinkBtn').addEventListener('click', () => {
+            const link = document.getElementById('bookingLink');
+            link.select();
+            navigator.clipboard.writeText(link.value);
+            showAlert('הקישור הועתק!', 'success');
+        });
+
+        // Show alert
+        function showAlert(message, type) {
+            const container = document.getElementById('alertContainer');
+            container.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+            setTimeout(() => container.innerHTML = '', 4000);
+        }
+
+        // Check URL params
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('auth') === 'success') {
+            showAlert('התחברת בהצלחה ל-Google!', 'success');
+            window.history.replaceState({}, document.title, `/setup/${advisorId}`);
+        }
+
+        // Initialize
+        loadAdvisor();
+    </script>
+</body>
+</html>
+

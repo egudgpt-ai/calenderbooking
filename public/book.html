@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>קביעת פגישה</title>
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --primary-light: #e0e7ff;
+            --accent: #10b981;
+            --text: #1f2937;
+            --text-secondary: #6b7280;
+            --bg: #f3f4f6;
+            --card-bg: #ffffff;
+            --border: #e5e7eb;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Heebo', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            padding: 30px 20px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .advisor-info {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255,255,255,0.2);
+            padding: 10px 20px;
+            border-radius: 30px;
+        }
+
+        .advisor-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: white;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+            overflow: hidden;
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, var(--primary) 0%, #8b5cf6 100%);
+            color: white;
+            padding: 25px 30px;
+        }
+
+        .card-header h2 {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.4rem;
+        }
+
+        .card-body { padding: 30px; }
+
+        .step-indicator {
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .step-dot {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: var(--text-secondary);
+            transition: all 0.3s;
+        }
+
+        .step-dot.active {
+            background: var(--primary);
+            color: white;
+            transform: scale(1.1);
+        }
+
+        .step-dot.completed {
+            background: var(--accent);
+            color: white;
+        }
+
+        .step { display: none; }
+        .step.active { display: block; animation: fadeIn 0.4s ease; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .slots-container {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .date-group {
+            margin-bottom: 20px;
+        }
+
+        .date-title {
+            font-weight: 600;
+            color: var(--primary);
+            padding: 10px 0;
+            border-bottom: 2px solid var(--primary-light);
+            margin-bottom: 10px;
+            position: sticky;
+            top: 0;
+            background: white;
+        }
+
+        .slots-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 10px;
+        }
+
+        .slot-btn {
+            padding: 12px;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: inherit;
+            font-weight: 500;
+            color: var(--text);
+        }
+
+        .slot-btn:hover {
+            border-color: var(--primary);
+            background: var(--primary-light);
+        }
+
+        .slot-btn.selected {
+            border-color: var(--primary);
+            background: var(--primary);
+            color: white;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        .form-group label .required {
+            color: #ef4444;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px var(--primary-light);
+        }
+
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .selected-slot-preview {
+            background: var(--primary-light);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            border-right: 4px solid var(--primary);
+        }
+
+        .selected-slot-preview h4 {
+            color: var(--primary);
+            margin-bottom: 5px;
+        }
+
+        .btn {
+            padding: 16px 32px;
+            border: none;
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, #8b5cf6 100%);
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn-primary:disabled {
+            background: var(--border);
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: var(--bg);
+            color: var(--text);
+        }
+
+        .buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+
+        .success-message {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .success-icon {
+            width: 90px;
+            height: 90px;
+            background: var(--accent);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 25px;
+            font-size: 45px;
+            color: white;
+            animation: scaleIn 0.5s ease;
+        }
+
+        @keyframes scaleIn {
+            from { transform: scale(0); }
+            to { transform: scale(1); }
+        }
+
+        .success-message h3 {
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 50px;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid var(--border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .error-message {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 15px 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .no-slots {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-secondary);
+        }
+
+        .no-slots-icon {
+            font-size: 60px;
+            margin-bottom: 15px;
+        }
+
+        @media (max-width: 600px) {
+            .buttons {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .btn {
+                width: 100%;
+            }
+
+            .slots-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🗓️ קביעת פגישה</h1>
+            <div class="advisor-info">
+                <div class="advisor-avatar" id="advisorAvatar">?</div>
+                <span id="advisorName">טוען...</span>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h2>
+                    <span>📅</span>
+                    <span>בחרו זמן לפגישה</span>
+                </h2>
+            </div>
+
+            <div class="card-body">
+                <div class="step-indicator">
+                    <div class="step-dot active" data-step="1">1</div>
+                    <div class="step-dot" data-step="2">2</div>
+                    <div class="step-dot" data-step="3">✓</div>
+                </div>
+
+                <div class="error-message" id="errorMessage" style="display: none;"></div>
+
+                <!-- Step 1: Choose Time -->
+                <div class="step active" id="step1">
+                    <div id="slotsContainer">
+                        <div class="loading">
+                            <div class="spinner"></div>
+                            <p>טוען זמנים פנויים...</p>
+                        </div>
+                    </div>
+
+                    <div class="buttons">
+                        <div></div>
+                        <button class="btn btn-primary" id="nextBtn1" disabled>המשך →</button>
+                    </div>
+                </div>
+
+                <!-- Step 2: Fill Details -->
+                <div class="step" id="step2">
+                    <div class="selected-slot-preview">
+                        <h4>🕐 הזמן שנבחר:</h4>
+                        <p id="selectedSlotText"></p>
+                    </div>
+
+                    <form id="bookingForm">
+                        <div class="form-group">
+                            <label>שם מלא <span class="required">*</span></label>
+                            <input type="text" id="name" required placeholder="הכניסו את שמכם">
+                        </div>
+
+                        <div class="form-group">
+                            <label>אימייל <span class="required">*</span></label>
+                            <input type="email" id="email" required placeholder="example@email.com">
+                        </div>
+
+                        <div class="form-group">
+                            <label>טלפון</label>
+                            <input type="tel" id="phone" placeholder="050-0000000">
+                        </div>
+
+                        <div class="form-group">
+                            <label>הערות נוספות</label>
+                            <textarea id="notes" placeholder="נושא הפגישה או הערות..."></textarea>
+                        </div>
+                    </form>
+
+                    <div class="buttons">
+                        <button class="btn btn-secondary" id="backBtn2">← חזרה</button>
+                        <button class="btn btn-primary" id="submitBtn">קבע פגישה 🎉</button>
+                    </div>
+                </div>
+
+                <!-- Step 3: Success -->
+                <div class="step" id="step3">
+                    <div class="success-message">
+                        <div class="success-icon">✓</div>
+                        <h3>הפגישה נקבעה בהצלחה!</h3>
+                        <p style="color: var(--text-secondary);">נשלח אליכם אישור למייל</p>
+                        <p id="eventLink" style="margin-top: 20px;"></p>
+                        <button class="btn btn-primary" style="margin-top: 30px;" onclick="location.reload()">
+                            קביעת פגישה נוספת
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const advisorId = window.location.pathname.split('/').pop();
+        let selectedSlot = null;
+        let advisorInfo = null;
+
+        // Load availability
+        async function loadAvailability() {
+            try {
+                const response = await fetch(`/api/book/${advisorId}/availability`);
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error);
+                }
+                const data = await response.json();
+                
+                advisorInfo = data.advisor;
+                document.getElementById('advisorName').textContent = advisorInfo.name;
+                document.getElementById('advisorAvatar').textContent = advisorInfo.name.charAt(0);
+                document.title = `קביעת פגישה עם ${advisorInfo.name}`;
+
+                renderSlots(data.slots);
+            } catch (error) {
+                document.getElementById('slotsContainer').innerHTML = `
+                    <div class="no-slots">
+                        <div class="no-slots-icon">⚠️</div>
+                        <h3>${error.message}</h3>
+                    </div>
+                `;
+            }
+        }
+
+        // Render slots
+        function renderSlots(slots) {
+            const container = document.getElementById('slotsContainer');
+
+            if (slots.length === 0) {
+                container.innerHTML = `
+                    <div class="no-slots">
+                        <div class="no-slots-icon">📅</div>
+                        <h3>אין זמנים פנויים כרגע</h3>
+                        <p>נסו לבדוק שוב מאוחר יותר</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Group by date
+            const grouped = {};
+            slots.forEach(slot => {
+                const date = new Date(slot.start).toLocaleDateString('he-IL', {
+                    weekday: 'long',
+                    month: 'long',
+                    day: 'numeric'
+                });
+                if (!grouped[date]) grouped[date] = [];
+                grouped[date].push(slot);
+            });
+
+            let html = '<div class="slots-container">';
+            
+            for (const [date, dateSlots] of Object.entries(grouped)) {
+                html += `<div class="date-group">`;
+                html += `<div class="date-title">📅 ${date}</div>`;
+                html += `<div class="slots-grid">`;
+                
+                dateSlots.forEach(slot => {
+                    const time = new Date(slot.start).toLocaleTimeString('he-IL', {
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+                    html += `<button class="slot-btn" data-slot='${JSON.stringify(slot)}'>${time}</button>`;
+                });
+
+                html += '</div></div>';
+            }
+
+            html += '</div>';
+            container.innerHTML = html;
+
+            // Add click handlers
+            document.querySelectorAll('.slot-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.slot-btn').forEach(b => b.classList.remove('selected'));
+                    btn.classList.add('selected');
+                    selectedSlot = JSON.parse(btn.dataset.slot);
+                    document.getElementById('nextBtn1').disabled = false;
+                });
+            });
+        }
+
+        // Navigation
+        function showStep(step) {
+            document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+            document.getElementById(`step${step}`).classList.add('active');
+            
+            document.querySelectorAll('.step-dot').forEach((dot, i) => {
+                dot.classList.remove('active', 'completed');
+                if (i + 1 < step) dot.classList.add('completed');
+                if (i + 1 === step) dot.classList.add('active');
+            });
+        }
+
+        document.getElementById('nextBtn1').addEventListener('click', () => {
+            if (selectedSlot) {
+                document.getElementById('selectedSlotText').textContent = selectedSlot.display;
+                showStep(2);
+            }
+        });
+
+        document.getElementById('backBtn2').addEventListener('click', () => showStep(1));
+
+        // Submit
+        document.getElementById('submitBtn').addEventListener('click', async () => {
+            const name = document.getElementById('name').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const phone = document.getElementById('phone').value.trim();
+            const notes = document.getElementById('notes').value.trim();
+
+            if (!name || !email) {
+                showError('נא למלא שם ואימייל');
+                return;
+            }
+
+            const btn = document.getElementById('submitBtn');
+            btn.disabled = true;
+            btn.textContent = 'שולח...';
+
+            try {
+                const response = await fetch(`/api/book/${advisorId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ slot: selectedSlot, name, email, phone, notes })
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) throw new Error(result.error);
+
+                if (result.eventLink) {
+                    document.getElementById('eventLink').innerHTML = `
+                        <a href="${result.eventLink}" target="_blank" style="color: var(--primary);">
+                            צפייה בפגישה ביומן
+                        </a>
+                    `;
+                }
+
+                showStep(3);
+            } catch (error) {
+                showError(error.message);
+                btn.disabled = false;
+                btn.textContent = 'קבע פגישה 🎉';
+            }
+        });
+
+        function showError(msg) {
+            const el = document.getElementById('errorMessage');
+            el.textContent = msg;
+            el.style.display = 'block';
+            setTimeout(() => el.style.display = 'none', 5000);
+        }
+
+        // Initialize
+        loadAvailability();
+    </script>
+</body>
+</html>
+
